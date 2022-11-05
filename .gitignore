@@ -1,0 +1,5 @@
+bin
+.clang-format
+compile_flags.txt
+debug.gdb
+

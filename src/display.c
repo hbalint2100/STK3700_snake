@@ -1,5 +1,6 @@
 #include "display.h"
 #include "string.h"
+#include "stdlib.h"
 #include "em_lcd.h"
 #include "segmentlcd.h"
 #include "segmentlcd_individual.h"

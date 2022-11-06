@@ -148,7 +148,12 @@ void displayMap(map* map)
     SegmentLCD_LowerSegments(lowerCharSegments);
 }
 
-void clearDisplay()
+void clearDisplay(map* map)
 {
+    for (int i = 0; i < HEIGHT; i++) {
+        for (int j = 0; j < WIDTH; j++) {
+            map->pixels[i][j] = 0;
+        }
+    }
     SegmentLCD_AllOff();
 }

@@ -22,4 +22,4 @@ void setPixel(map* map,pixel position,uint8_t value);
 
 void displayMap(map* map);
 
-void clearDisplay();
+void clearDisplay(map* map);

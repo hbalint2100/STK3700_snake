@@ -31,24 +31,26 @@ void UART0_RX_IRQHandler(void)
 {
     switch (USART_RxDataGet(UART0)) {
         case 'd':
-        case 'l':
         case 67: // right arrow
             snk.dir = right;
             break;
         case 'a':
-        case 'h':
         case 68: // left arrow
             snk.dir = left;
             break;
         case 'w':
-        case 'k':
         case 65: // up arrow
             snk.dir = up;
             break;
         case 's':
-        case 'j':
         case 66: // down arrow
             snk.dir = down;
+            break;
+        case 'j':
+            snk.dir = snk.dir == left ? up : snk.dir + 1;
+            break;
+        case 'b':
+            snk.dir = snk.dir == up ? left : snk.dir - 1;
             break;
         case 'r':
             reset = true;
@@ -76,6 +78,7 @@ __STATIC_INLINE void UART_Init()
 
 int main()
 {
+    map map = {{{0}}};
     initSnake(&snk);
     UART_Init();
     /* Setup SysTick Timer for 1 msec interrupts  */
@@ -85,54 +88,20 @@ int main()
     }
     /* Enable LCD without voltage boost */
     SegmentLCD_Init(false);
-    map map = {{{0}}};
-    //map map = {{{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
-    //           ,{1,0,1,0,1,0,1,0,1,0,1,0,1,0,1}
-    //           ,{0,0,1,1,1,1,1,1,1,1,1,1,1,1,1}
-    //           ,{0,0,1,0,1,0,1,0,1,0,1,0,1,0,1}
-    //           ,{0,0,0,0,0,0,0,0,0,0,0,0,0,1,1}}};
-    snk.len = 5;
+
     while (1) {
+        drawSnake(&map, &snk);
+        SegmentLCD_Number(snk.len - 1);
+        Delay(500);
+        if(checkCollision(&snk)) {
+            reset = 1;
+        }
         if (reset) {
             reset = false;
             initSnake(&snk);
             clearMap(&map);
         }
-        drawSnake(&map, &snk);
-        SegmentLCD_Number(snk.len - 1);
-        Delay(500);
-
         stepSnake(&snk);
-        switch (snk.dir) {
-            case up:
-                snk.pos[0].y -= 2;
-                if (snk.pos[0].y < 0) {
-                    snk.pos[0].y = HEIGHT - 1 - 2;
-                    snk.pos[1].y = HEIGHT - 1;
-                }
-                break;
-            case down:
-                snk.pos[0].y += 2;
-                if (snk.pos[0].y > HEIGHT - 1) {
-                    snk.pos[0].y = 0 + 2;
-                    snk.pos[1].y = 0;
-                }
-                break;
-            case left:
-                snk.pos[0].x -= 2;
-                if (snk.pos[0].x < 0) {
-                    snk.pos[0].x = WIDTH - 1 - 2;
-                    snk.pos[1].x = WIDTH - 1;
-                }
-                break;
-            case right:
-                snk.pos[0].x += 2;
-                if (snk.pos[0].x > WIDTH - 1) {
-                    snk.pos[0].x = 0 + 2;
-                    snk.pos[1].x = 0;
-                }
-                break;
-        }
     }
 }
 

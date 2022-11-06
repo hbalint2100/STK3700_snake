@@ -7,14 +7,11 @@
 #include "em_lcd.h"
 #include "segmentlcd.h"
 #include "display.h"
+#include "snake.h"
 
-#define SLEEP 200
-
-typedef enum _direction { up, down, left, right } direction;
-
-volatile uint32_t  msTicks; /* counts 1ms timeTicks */
-volatile direction dir      = right;
-volatile direction prev_dir = right;
+volatile uint32_t msTicks; /* counts 1ms timeTicks */
+volatile bool     reset = false;
+snake             snk;
 
 void SysTick_Handler(void)
 {
@@ -32,27 +29,29 @@ void Delay(uint32_t dlyTicks)
 
 void UART0_RX_IRQHandler(void)
 {
-    prev_dir = dir;
     switch (USART_RxDataGet(UART0)) {
         case 'd':
         case 'l':
         case 67: // right arrow
-            dir = right;
+            snk.dir = right;
             break;
         case 'a':
         case 'h':
         case 68: // left arrow
-            dir = left;
+            snk.dir = left;
             break;
         case 'w':
         case 'k':
         case 65: // up arrow
-            dir = up;
+            snk.dir = up;
             break;
         case 's':
         case 'j':
         case 66: // down arrow
-            dir = down;
+            snk.dir = down;
+            break;
+        case 'r':
+            reset = true;
             break;
     }
 }
@@ -77,6 +76,7 @@ __STATIC_INLINE void UART_Init()
 
 int main()
 {
+    initSnake(&snk);
     UART_Init();
     /* Setup SysTick Timer for 1 msec interrupts  */
     if (SysTick_Config(CMU_ClockFreqGet(cmuClock_CORE) / 1000)) {
@@ -85,39 +85,54 @@ int main()
     }
     /* Enable LCD without voltage boost */
     SegmentLCD_Init(false);
-    //map map={{0}};
-    map map = {{{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
-               ,{1,0,1,0,1,0,1,0,1,0,1,0,1,0,1}
-               ,{0,0,1,1,1,1,1,1,1,1,1,1,1,1,1}
-               ,{0,0,1,0,1,0,1,0,1,0,1,0,1,0,1}
-               ,{0,0,0,0,0,0,0,0,0,0,0,0,0,1,1}}};
-    
-    /*drawLine(&map,(pixel){0,0},(pixel){0,2},1);
-    drawLine(&map,(pixel){2,2},(pixel){2,4},1);
-    drawLine(&map,(pixel){0,2},(pixel){2,2},1);
-    drawLine(&map,(pixel){0,0},(pixel){2,0},1);
-    drawLine(&map,(pixel){0,4},(pixel){2,4},1);
+    map map = {{{0}}};
+    //map map = {{{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
+    //           ,{1,0,1,0,1,0,1,0,1,0,1,0,1,0,1}
+    //           ,{0,0,1,1,1,1,1,1,1,1,1,1,1,1,1}
+    //           ,{0,0,1,0,1,0,1,0,1,0,1,0,1,0,1}
+    //           ,{0,0,0,0,0,0,0,0,0,0,0,0,0,1,1}}};
 
-    drawLine(&map,(pixel){4,0},(pixel){4,4},1);
-    drawLine(&map,(pixel){4,0},(pixel){6,0},1);
-    drawLine(&map,(pixel){4,2},(pixel){6,2},1);
-    drawLine(&map,(pixel){4,4},(pixel){6,4},1);
-
-    drawLine(&map,(pixel){6,0},(pixel){6,4},1);
-    drawLine(&map,(pixel){8,0},(pixel){8,4},1);
-    drawLine(&map,(pixel){6,2},(pixel){8,2},1);
-
-    drawLine(&map,(pixel){10,0},(pixel){10,2},1);
-    drawLine(&map,(pixel){12,0},(pixel){12,4},1);
-    drawLine(&map,(pixel){10,2},(pixel){12,2},1);*/
-    
-    displayMap(&map);
-    // test
-    int num = 0;
     while (1) {
-        SegmentLCD_Number(num);
-        num++;
+        if (reset) {
+            reset = false;
+            initSnake(&snk);
+            clearDisplay(&map);
+        }
+        drawSnake(&map, &snk);
+        SegmentLCD_Number(snk.len - 1);
         Delay(500);
+
+        stepSnake(&snk);
+        switch (snk.dir) {
+            case up:
+                snk.pos[0].y -= 2;
+                if (snk.pos[0].y < 0) {
+                    snk.pos[0].y = HEIGHT - 1 - 2;
+                    snk.pos[1].y = HEIGHT - 1;
+                }
+                break;
+            case down:
+                snk.pos[0].y += 2;
+                if (snk.pos[0].y > HEIGHT - 1) {
+                    snk.pos[0].y = 0 + 2;
+                    snk.pos[1].y = 0;
+                }
+                break;
+            case left:
+                snk.pos[0].x -= 2;
+                if (snk.pos[0].x < 0) {
+                    snk.pos[0].x = WIDTH - 1 - 2;
+                    snk.pos[1].x = WIDTH - 1;
+                }
+                break;
+            case right:
+                snk.pos[0].x += 2;
+                if (snk.pos[0].x > WIDTH - 1) {
+                    snk.pos[0].x = 0 + 2;
+                    snk.pos[1].x = 0;
+                }
+                break;
+        }
     }
 }
 

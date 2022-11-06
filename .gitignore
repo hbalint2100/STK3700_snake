@@ -6,3 +6,4 @@ connect.sh
 control.sh
 .vscode
 includes.mk
+*.code-workspace

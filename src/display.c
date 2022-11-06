@@ -29,9 +29,14 @@ void setPixel(map* map,pixel position,uint8_t value)
     map->pixels[position.y][position.x] = value;
 }
 
+__STATIC_INLINE bool isValid(pixel position)
+{
+    return position.x>=0&&position.x<WIDTH&&position.y>=0&&position.y<HEIGHT;
+}
+
 void drawLine(map* map,pixel startPosition,pixel endPosition,uint8_t value)
 {
-    if(!map)
+    if(!map||!isValid(startPosition)||!isValid(endPosition))
     {
         return;
     }
@@ -148,12 +153,7 @@ void displayMap(map* map)
     SegmentLCD_LowerSegments(lowerCharSegments);
 }
 
-void clearDisplay(map* map)
+void clearMap(map* map)
 {
-    for (int i = 0; i < HEIGHT; i++) {
-        for (int j = 0; j < WIDTH; j++) {
-            map->pixels[i][j] = 0;
-        }
-    }
-    SegmentLCD_AllOff();
+    memset(map->pixels,0,sizeof(map->pixels));
 }

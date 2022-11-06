@@ -18,7 +18,7 @@ void stepSnake(snake *snk)
 
 void drawSnake(map *map, snake *snk)
 {
-    clearDisplay(map); // TODO: only clear the last segment
+    clearMap(map); // TODO: only clear the last segment
     for (int i = 0; i < snk->len - 1; i++) {
         drawLine(map, snk->pos[i], snk->pos[i + 1], 1);
     }

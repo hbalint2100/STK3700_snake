@@ -91,12 +91,12 @@ int main()
     //           ,{0,0,1,1,1,1,1,1,1,1,1,1,1,1,1}
     //           ,{0,0,1,0,1,0,1,0,1,0,1,0,1,0,1}
     //           ,{0,0,0,0,0,0,0,0,0,0,0,0,0,1,1}}};
-
+    snk.len = 5;
     while (1) {
         if (reset) {
             reset = false;
             initSnake(&snk);
-            clearDisplay(&map);
+            clearMap(&map);
         }
         drawSnake(&map, &snk);
         SegmentLCD_Number(snk.len - 1);

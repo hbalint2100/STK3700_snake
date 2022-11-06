@@ -2,4 +2,7 @@ bin
 .clang-format
 compile_flags.txt
 debug.gdb
-
+connect.sh
+control.sh
+.vscode
+includes.mk

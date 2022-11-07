@@ -23,3 +23,5 @@ void setPixel(map* map,pixel position,uint8_t value);
 void displayMap(map* map);
 
 void clearMap(map* map);
+
+void toggleDecimalPoints();

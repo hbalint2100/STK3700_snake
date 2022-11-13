@@ -1,6 +1,7 @@
 #pragma once
 
 #include<stdint.h>
+#include <stdbool.h>
 #define HEIGHT 5
 #define WIDTH 15
 
@@ -25,3 +26,5 @@ void displayMap(map* map);
 void clearMap(map* map);
 
 void toggleDecimalPoints();
+
+bool cmpPixel(pixel a,pixel b);

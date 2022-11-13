@@ -170,3 +170,8 @@ void toggleDecimalPoints()
     decimalPointState=!decimalPointState;
     LCD_FreezeEnable(false);
 }
+
+bool cmpPixel(pixel a,pixel b)
+{
+    return a.x == b.x && a.y == b.y;
+}

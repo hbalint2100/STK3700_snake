@@ -12,6 +12,8 @@
 volatile uint32_t msTicks; /* counts 1ms timeTicks */
 volatile bool     reset = false;
 snake             snk;
+food              _food;
+map               _map;
 
 void SysTick_Handler(void)
 {
@@ -78,8 +80,9 @@ __STATIC_INLINE void UART_Init()
 
 int main()
 {
-    map map = {{{0}}};
     initSnake(&snk);
+    clearMap(&_map);
+    _food.eaten = true;
     UART_Init();
     /* Setup SysTick Timer for 1 msec interrupts  */
     if (SysTick_Config(CMU_ClockFreqGet(cmuClock_CORE) / 1000)) {
@@ -88,20 +91,41 @@ int main()
     }
     /* Enable LCD without voltage boost */
     SegmentLCD_Init(false);
-
+    bool lengthChanged = true;
     while (1) {
-        drawSnake(&map, &snk);
-        SegmentLCD_Number(snk.len - 1);
-        Delay(500);
-        if(checkCollision(&snk)) {
-            reset = 1;
+        if(_food.eaten&&!generateFood(&snk,&_food,&msTicks))
+        {
+            reset = true;
         }
         if (reset) {
             reset = false;
             initSnake(&snk);
-            clearMap(&map);
+            clearMap(&_map);
+            lengthChanged = true;
+            clearMap(&_map);
+            displayMap(&_map);
+            while(1){
+                toggleDecimalPoints();
+                Delay(500);
+            }
+        }
+        drawSnake(&_map, &snk);
+        drawFood(&_map,&_food);
+        displayMap(&_map);
+        if(lengthChanged)
+        {
+            SegmentLCD_Number(snk.len - 1);
+            lengthChanged = false;
+        }
+        Delay(500);
+        if(checkCollision(&snk)) {
+            reset = true;
         }
         stepSnake(&snk);
+        if(isEating(&snk,&_food))
+        {
+            lengthChanged = true;
+        }
     }
 }
 

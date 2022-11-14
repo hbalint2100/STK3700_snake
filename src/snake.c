@@ -97,13 +97,13 @@ bool checkCollision(snake *snk)
     return false;
 }
 
-bool isOnSnake(pixel *pos, snake *snk)
+bool isOnSnake(pixel *pos, snake *snk) //checks if the given coordinate is on snake's body
 {
     if (!pos || !snk) {
         return false;
     }
     for (int i = 0; i < snk->len; i++) {
-        if (snk->pos[i].x == pos->x && snk->pos[i].y == pos->y) {
+        if (cmpPixel(snk->pos[i],*pos)) {
             return true;
         }
     }
@@ -119,29 +119,30 @@ bool generateFood(snake *snk, food *food, volatile uint32_t *time)
     do {
         do {
             srand(*time);
-        } while ((food->pos[0].x = rand() % 15) % 2 != 0); //generate x coordinate
+        } while ((food->pos[0].x = rand() % 15) % 2 != 0); //generate x of first coordinate
         do {
             srand(*time);
-        } while ((food->pos[0].y = rand() % 5) % 2 != 0); //generate y coordinate
-    } while (isOnSnake(&food->pos[0], snk) && (*time - startTime) < 1000);
+        } while ((food->pos[0].y = rand() % 5) % 2 != 0); //generate y of first coordinate
+    } while (isOnSnake(&food->pos[0], snk) && (*time - startTime) < 1000); //try while first coordinate is not on snake and if stuck->exit
 
     do {
         srand(*time);
-        if (rand() % 2) {
-            food->pos[1].x = food->pos[0].x + 2 < WIDTH ? food->pos[0].x + 2 : food->pos[0].x - 2;
+        if (rand() % 2) { // random direction of food if odd -> horizontal if even -> vertical
+            food->pos[1].x = food->pos[0].x + 2 < WIDTH ? food->pos[0].x + 2 : food->pos[0].x - 2; //generate second coordinate of food
             food->pos[1].y = food->pos[0].y;
         } else {
-            food->pos[1].y = food->pos[0].y + 2 < HEIGHT ? food->pos[0].y + 2 : food->pos[0].y - 2;
+            food->pos[1].y = food->pos[0].y + 2 < HEIGHT ? food->pos[0].y + 2 : food->pos[0].y - 2; //generate second coordinate of food
             food->pos[1].x = food->pos[0].x;
         }
-    } while (isOnSnake(&food->pos[1], snk) && (*time - startTime) < 2000);
+    } while (isOnSnake(&food->pos[1], snk) && (*time - startTime) < 2000); //try while second coordinate is not on snake and if stuck->exit
     if ((*time - startTime) < 2000) {
         food->eaten = false;
         return true;
     }
-    return false;
+    return false;//stuck in loop
 }
 
+//draws food on map
 void drawFood(map *map, food *food)
 {
     if (!map || !food)
@@ -149,13 +150,14 @@ void drawFood(map *map, food *food)
     drawLine(map, food->pos[0], food->pos[1], 1);
 }
 
+//checks if snake is currently eating food -> increases length and sets food as eaten
 bool isEating(snake *snk, food *food)
 {
     if (!snk || !food || snk->len < 2) {
         return false;
     }
     if ((cmpPixel(snk->pos[0], food->pos[0]) || cmpPixel(snk->pos[1], food->pos[0])) &&
-        (cmpPixel(snk->pos[0], food->pos[1]) || cmpPixel(snk->pos[1], food->pos[1]))) {
+        (cmpPixel(snk->pos[0], food->pos[1]) || cmpPixel(snk->pos[1], food->pos[1]))) { //checks if snake's head is on food
         food->eaten = true;
         snk->len += 1;
         return true;

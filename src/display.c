@@ -20,7 +20,7 @@
 typedef enum _segment { a, b, c, d, e, f, g, h, j, k, m } segment;
 SegmentLCD_LowerCharSegments_TypeDef lowerCharSegments[SEGMENT_LCD_NUM_OF_LOWER_CHARS];
 
-void setPixel(map* map,pixel position,uint8_t value)
+void setPixel(map* map,pixel position,uint8_t value) //setting pixel value in map
 {
     if(!map)
     {
@@ -29,11 +29,12 @@ void setPixel(map* map,pixel position,uint8_t value)
     map->pixels[position.y][position.x] = value;
 }
 
-__STATIC_INLINE bool isValid(pixel position)
+__STATIC_INLINE bool isValid(pixel position) //checks if pixel is in map's range
 {
     return position.x>=0&&position.x<WIDTH&&position.y>=0&&position.y<HEIGHT;
 }
 
+//draws line between two pixels if they are either in the same column or row
 void drawLine(map* map,pixel startPosition,pixel endPosition,uint8_t value)
 {
     if(!map||!isValid(startPosition)||!isValid(endPosition))
@@ -48,7 +49,7 @@ void drawLine(map* map,pixel startPosition,pixel endPosition,uint8_t value)
         if(vertical)
         {
             int8_t dir = endPosition.y-startPosition.y>0? 1:-1;
-            for(int8_t i = startPosition.y;i!=endPosition.y+dir&&i>=0&&i<HEIGHT;i+=dir)
+            for(int8_t i = startPosition.y;i!=endPosition.y+dir&&i>=0&&i<HEIGHT;i+=dir) //drawing vertical line with the desired direction
             {
                 map->pixels[i][startPosition.x] = value;
             }
@@ -56,7 +57,7 @@ void drawLine(map* map,pixel startPosition,pixel endPosition,uint8_t value)
         else if(horizontal)
         {
             int8_t dir = endPosition.x-startPosition.x>0? 1:-1;
-            for(int8_t i = startPosition.x;i!=endPosition.x+dir&&i>=0&&i<WIDTH;i+=dir)
+            for(int8_t i = startPosition.x;i!=endPosition.x+dir&&i>=0&&i<WIDTH;i+=dir) //drawing horizontal line with the desired direction
             {
                 map->pixels[startPosition.y][i] = value;
             }
@@ -100,10 +101,10 @@ void setSegmentByPixel(pixel startPixel,pixel endPixel)
         }
         if(seg == -1)
         {
-            return;
+            return; //segment not found
         }
         lowerCharSegments[startPixel.x/2].raw |= 1 << seg;
-        if(seg==g)
+        if(seg==g) //the middle horizontal pixels m&g are combined
         {
             lowerCharSegments[startPixel.x/2].raw |= 1 << m;
         }
@@ -140,13 +141,13 @@ void displayMap(map* map)
     {
         for(uint8_t j = 0; j < WIDTH; j+=2)
         {
-            if(i+2<HEIGHT&&map->pixels[i][j]&&map->pixels[i+1][j]&&map->pixels[i+2][j])
+            if(i+2<HEIGHT&&map->pixels[i][j]&&map->pixels[i+1][j]&&map->pixels[i+2][j]) //checks if three pixels in a column are on
             {
-                setSegmentByPixel((pixel){j,i},(pixel){j,i+2});
+                setSegmentByPixel((pixel){j,i},(pixel){j,i+2}); //setting vertical segments
             }
-            if(j+2<WIDTH&&map->pixels[i][j]&&map->pixels[i][j+1]&&map->pixels[i][j+2])
+            if(j+2<WIDTH&&map->pixels[i][j]&&map->pixels[i][j+1]&&map->pixels[i][j+2]) //checks if three pixels in a row are on
             {
-                setSegmentByPixel((pixel){j,i},(pixel){j+2,i});
+                setSegmentByPixel((pixel){j,i},(pixel){j+2,i}); //setting horizontal segments
             }
         }
     }
@@ -169,8 +170,7 @@ void setDecimalPoints(bool value)
     LCD_FreezeEnable(false);
 }
 
-bool cmpPixel(pixel a,pixel b)
+bool cmpPixel(pixel a,pixel b) //checks whether a & b pixels are the same
 {
     return a.x == b.x && a.y == b.y;
 }
-

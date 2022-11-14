@@ -74,7 +74,8 @@ void drawSnake(map *map, snake *snk)
             if (snk->pos[i].x != snk->pos[i + 1].x) {
                 drawLine(map, snk->pos[i + 1], (pixel){snk->pos[i].x, snk->pos[i + 1].y}, 1);
             }
-        } else if (snk->pos[i].x == snk->pos[i + 2].x && snk->pos[i].y == snk->pos[i + 2].y) {
+        } else if (snk->len > 2 && snk->pos[i].x == snk->pos[i + 2].x &&
+                   snk->pos[i].y == snk->pos[i + 2].y) {
             drawLine(map, (pixel){snk->pos[i + 2].x, snk->pos[i + 2].y - 2},
                           (pixel){snk->pos[i + 2].x, snk->pos[i + 2].y + 2}, 1);
         } else {

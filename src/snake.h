@@ -32,4 +32,3 @@ bool generateFood(snake *, food *, volatile uint32_t *time);
 void drawFood(map *, food *);
 
 bool isEating(snake *, food *);
-

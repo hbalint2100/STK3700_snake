@@ -102,7 +102,7 @@ bool isOnSnake(pixel *pos, snake *snk)
         return false;
     }
     for (int i = 0; i < snk->len; i++) {
-        if (snk->pos[i].x == pos->x && snk->pos[i].y == pos->y) {
+        if (cmpPixel(snk->pos[i],*pos)) {
             return true;
         }
     }

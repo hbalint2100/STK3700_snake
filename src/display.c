@@ -19,7 +19,6 @@
 
 typedef enum _segment { a, b, c, d, e, f, g, h, j, k, m } segment;
 SegmentLCD_LowerCharSegments_TypeDef lowerCharSegments[SEGMENT_LCD_NUM_OF_LOWER_CHARS];
-bool decimalPointState = false;
 
 void setPixel(map* map,pixel position,uint8_t value)
 {
@@ -159,15 +158,14 @@ void clearMap(map* map)
     memset(map->pixels,0,sizeof(map->pixels));
 }
 
-void toggleDecimalPoints()
+void setDecimalPoints(bool value)
 {
     LCD_FreezeEnable(true);
-    LCD_SegmentSet(7,12,!decimalPointState); //first decimal point
-    LCD_SegmentSet(6,12,!decimalPointState); //third decimal point
-    LCD_SegmentSet(5,12,!decimalPointState); //second decimal point
-    LCD_SegmentSet(7,29,!decimalPointState); //fourth decimal point
-    LCD_SegmentSet(7,31,!decimalPointState); //fifth decimal point
-    decimalPointState=!decimalPointState;
+    LCD_SegmentSet(7,12,value); //first decimal point
+    LCD_SegmentSet(6,12,value); //third decimal point
+    LCD_SegmentSet(5,12,value); //second decimal point
+    LCD_SegmentSet(7,29,value); //fourth decimal point
+    LCD_SegmentSet(7,31,value); //fifth decimal point
     LCD_FreezeEnable(false);
 }
 
@@ -175,3 +173,4 @@ bool cmpPixel(pixel a,pixel b)
 {
     return a.x == b.x && a.y == b.y;
 }
+

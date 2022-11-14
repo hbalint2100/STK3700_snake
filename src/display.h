@@ -1,7 +1,8 @@
 #pragma once
 
-#include<stdint.h>
+#include <stdint.h>
 #include <stdbool.h>
+#include "em_lcd.h"
 #define HEIGHT 5
 #define WIDTH 15
 
@@ -25,6 +26,7 @@ void displayMap(map* map);
 
 void clearMap(map* map);
 
-void toggleDecimalPoints();
+void setDecimalPoints(bool);
 
 bool cmpPixel(pixel a,pixel b);
+

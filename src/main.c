@@ -9,8 +9,11 @@
 #include "display.h"
 #include "snake.h"
 
+#define TICK 500
+
 volatile uint32_t msTicks; /* counts 1ms timeTicks */
-volatile bool     reset = false;
+volatile bool     reset     = false;
+volatile bool     game_over = false;
 snake             snk;
 food              _food;
 map               _map;
@@ -25,8 +28,7 @@ void Delay(uint32_t dlyTicks)
     uint32_t curTicks;
 
     curTicks = msTicks;
-    while ((msTicks - curTicks) < dlyTicks)
-        ;
+    while ((msTicks - curTicks) < dlyTicks);
 }
 
 void UART0_RX_IRQHandler(void)
@@ -55,7 +57,8 @@ void UART0_RX_IRQHandler(void)
             snk.dir = snk.dir == up ? left : snk.dir - 1;
             break;
         case 'r':
-            reset = true;
+            reset     = true;
+            game_over = false;
             break;
     }
 }
@@ -80,51 +83,60 @@ __STATIC_INLINE void UART_Init()
 
 int main()
 {
-    initSnake(&snk);
-    clearMap(&_map);
-    _food.eaten = true;
     UART_Init();
     /* Setup SysTick Timer for 1 msec interrupts  */
     if (SysTick_Config(CMU_ClockFreqGet(cmuClock_CORE) / 1000)) {
-        while (1)
-            ;
+        while (1);
     }
     /* Enable LCD without voltage boost */
     SegmentLCD_Init(false);
+
+    initSnake(&snk);
+    clearMap(&_map);
+    _food.eaten = true;
+
     bool lengthChanged = true;
+
     while (1) {
-        if(_food.eaten&&!generateFood(&snk,&_food,&msTicks))
-        {
-            reset = true;
-        }
         if (reset) {
-            reset = false;
+            reset     = false;
+            game_over = false;
+            setDecimalPoints(false);
             initSnake(&snk);
-            clearMap(&_map);
+            generateFood(&snk, &_food, &msTicks);
             lengthChanged = true;
-            clearMap(&_map);
-            displayMap(&_map);
-            while(1){
-                toggleDecimalPoints();
-                Delay(500);
-            }
         }
-        drawSnake(&_map, &snk);
-        drawFood(&_map,&_food);
-        displayMap(&_map);
-        if(lengthChanged)
-        {
+
+        if (lengthChanged) {
             SegmentLCD_Number(snk.len - 1);
             lengthChanged = false;
         }
-        Delay(500);
-        if(checkCollision(&snk)) {
-            reset = true;
-        }
-        stepSnake(&snk);
-        if(isEating(&snk,&_food))
-        {
+        if (isEating(&snk, &_food)) {
             lengthChanged = true;
+        }
+
+        if (checkCollision(&snk)) {
+            game_over = true;
+        }
+        if (_food.eaten && !generateFood(&snk, &_food, &msTicks)) {
+            game_over = true;
+        }
+
+        drawSnake(&_map, &snk);
+        drawFood(&_map, &_food);
+        displayMap(&_map);
+
+        Delay(TICK);
+
+        stepSnake(&snk);
+
+        while (game_over) {
+            clearMap(&_map);
+            displayMap(&_map);
+            setDecimalPoints(true);
+            Delay(TICK);
+            setDecimalPoints(false);
+            Delay(TICK);
         }
     }
 }

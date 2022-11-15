@@ -4,162 +4,207 @@
 #include "display.h"
 #include "snake.h"
 
-void initSnake(snake *snk)
+// set starting position and length
+void initSnake(snake *snake)
 {
-    if (!snk) {
+    if (!snake) {
         return;
     }
-    memset(snk->pos, 0, sizeof(snk->pos));
-    snk->len    = 1 + 1;
-    snk->dir    = right;
-    snk->pos[0] = (pixel){2, 2};
-    snk->pos[1] = (pixel){0, 2};
+    memset(snake->pos, 0, sizeof(snake->pos));
+    snake->len    = 1 + 1; // head has length 2 because it's a vector
+    snake->dir    = right;
+    snake->pos[0] = (pixel){2, 2};
+    snake->pos[1] = (pixel){0, 2};
 }
 
-void stepSnake(snake *snk)
+// move
+void stepSnake(snake *snake)
 {
-    if (!snk) {
+    if (!snake) {
         return;
     }
-    for (int i = snk->len - 1; i > 0; i--) {
-        snk->pos[i] = snk->pos[i - 1];
+    // shift snake except its head
+    for (int i = snake->len - 1; i > 0; i--) {
+        snake->pos[i] = snake->pos[i - 1];
     }
 
-    switch (snk->dir) {
+    // New position for head according to direction.
+    // When on overflow happens we would need a new position because the head takes
+    // one away, but instead of dynamically increasing and decreasing the number of
+    // positions we deal with these edge cases in drawSnake().
+    // for example:
+    //   before stepSnake(): snake.pos = {{14, 2}, {12, 2}, {10, 2}} and dir = right
+    //   after stepSnake():  snake.pos = {{2, 2}, {0, 2}, {12, 2}}
+    //   we lost {14, 2} which would be needed to draw a segment between {12, 2}, {14, 2}
+    switch (snake->dir) {
         case up:
-            snk->pos[0].y -= 2;
-            if (snk->pos[0].y < 0) {
-                snk->pos[0].y = HEIGHT - 1 - 2;
-                snk->pos[1].y = HEIGHT - 1;
+            snake->pos[0].y -= 2; // set head's direction to up
+            if (snake->pos[0].y < 0) {
+                // move head to the bottom of the screen
+                snake->pos[0].y = HEIGHT - 1 - 2;
+                snake->pos[1].y = HEIGHT - 1;
             }
             break;
         case down:
-            snk->pos[0].y += 2;
-            if (snk->pos[0].y > HEIGHT - 1) {
-                snk->pos[0].y = 0 + 2;
-                snk->pos[1].y = 0;
+            snake->pos[0].y += 2; // set head's direction to down
+            if (snake->pos[0].y > HEIGHT - 1) {
+                // move head to the top of the screen
+                snake->pos[0].y = 0 + 2;
+                snake->pos[1].y = 0;
             }
             break;
         case left:
-            snk->pos[0].x -= 2;
-            if (snk->pos[0].x < 0) {
-                snk->pos[0].x = WIDTH - 1 - 2;
-                snk->pos[1].x = WIDTH - 1;
+            snake->pos[0].x -= 2; // set head's direction to left
+            if (snake->pos[0].x < 0) {
+                // move head to the right of the screen
+                snake->pos[0].x = WIDTH - 1 - 2;
+                snake->pos[1].x = WIDTH - 1;
             }
             break;
         case right:
-            snk->pos[0].x += 2;
-            if (snk->pos[0].x > WIDTH - 1) {
-                snk->pos[0].x = 0 + 2;
-                snk->pos[1].x = 0;
+            snake->pos[0].x += 2; // set head's direction to right
+            if (snake->pos[0].x > WIDTH - 1) {
+                // move head to the left of the screen
+                snake->pos[0].x = 0 + 2;
+                snake->pos[1].x = 0;
             }
             break;
     }
 }
 
-void drawSnake(map *map, snake *snk)
+// draws snake on map
+void drawSnake(map *map, snake *snake)
 {
-    if (!map || !snk) {
+    if (!map || !snake) {
         return;
     }
     clearMap(map);
-    for (int i = 0; i < snk->len - 1; i++) {
-        if (abs(snk->pos[i].x - snk->pos[i + 1].x) > 2) {
-            if (snk->pos[i + 1].x == WIDTH - 3) {
-                drawLine(map, snk->pos[i + 1], (pixel){WIDTH - 1, snk->pos[i + 1].y}, 1);
-            } else if (snk->pos[i + 1].x == 2) {
-                drawLine(map, snk->pos[i + 1], (pixel){0, snk->pos[i + 1].y}, 1);
+    for (int i = 0; i < snake->len - 1; i++) {
+        // All the edge cases below occur because in stepSnake() an overflow happened
+        // and we would need an extra position to draw a segment. Instead of dynamically
+        // increasing and decreasing the number of positions we deal with them here.
+
+        // overflow on the left or right
+        if (abs(snake->pos[i].x - snake->pos[i + 1].x) > 2) {
+            // the most right position is missing -> needs to be patched
+            // for example:
+            //   before stepSnake(): snake.pos = {{14, 2}, {12, 2}, {10, 2}} and dir = right
+            //   after stepSnake():  snake.pos = {{2, 2}, {0, 2}, {12, 2}}
+            //   we lost {14, 2} which would be needed to draw a segment between {12, 2}, {14, 2}
+            if (snake->pos[i + 1].x == WIDTH - 3) {
+                drawLine(map, snake->pos[i + 1], (pixel){WIDTH - 1, snake->pos[i + 1].y}, 1);
             }
-        } else if (abs(snk->pos[i].y - snk->pos[i + 1].y) > 2) {
-            if (snk->pos[i].x != snk->pos[i + 1].x) {
-                drawLine(map, snk->pos[i + 1], (pixel){snk->pos[i].x, snk->pos[i + 1].y}, 1);
+            // the most left position is missing -> needs to be patched
+            else if (snake->pos[i + 1].x == 2) {
+                drawLine(map, snake->pos[i + 1], (pixel){0, snake->pos[i + 1].y}, 1);
             }
-        } else if (snk->len > 2 && snk->pos[i].x == snk->pos[i + 2].x &&
-                   snk->pos[i].y == snk->pos[i + 2].y) {
-            drawLine(map, (pixel){snk->pos[i + 2].x, snk->pos[i + 2].y - 2},
-                          (pixel){snk->pos[i + 2].x, snk->pos[i + 2].y + 2}, 1);
-        } else {
-            drawLine(map, snk->pos[i], snk->pos[i + 1], 1);
+        }
+        // when snake goes sideways on the top or bottom and turns so it overflows, the
+        // position where it rotated goes missing because of the head
+        // for example:
+        //   before stepSnake(): snake.pos = {{6, 0}, {4, 0}, {2, 0}} and dir = up
+        //   after stepSnake():  snake.pos = {{6, 2}, {6, 4}, {4, 0}}
+        //   we lost {6, 0} which would be needed to draw a segment between {4, 0}, {6, 0}
+        else if (abs(snake->pos[i].y - snake->pos[i + 1].y) > 2 && snake->pos[i].x != snake->pos[i + 1].x) {
+            // patch the missing position
+            drawLine(map, snake->pos[i + 1], (pixel){snake->pos[i].x, snake->pos[i + 1].y}, 1);
+        }
+        // snake goes vertically and constantly overflows
+        // (only makes sense when length is 2 + 1, otherwise it dies)
+        else if (snake->len > 2 && cmpPixel(snake->pos[i], snake->pos[i + 2])) {
+            drawLine(map, (pixel){snake->pos[i + 2].x, snake->pos[i + 2].y - 2},
+                     (pixel){snake->pos[i + 2].x, snake->pos[i + 2].y + 2}, 1);
+        }
+        // no overflow
+        else {
+            drawLine(map, snake->pos[i], snake->pos[i + 1], 1);
         }
     }
 }
 
-bool checkCollision(snake *snk)
+bool checkCollision(snake *snake)
 {
-    if (!snk) {
+    if (!snake) {
         return false;
     }
-    for (int i = 1; i < snk->len - 1; i++) {
-        if (snk->pos[0].x == snk->pos[i].x && snk->pos[0].y == snk->pos[i].y) {
+    for (int i = 1; i < snake->len - 1; i++) {
+        if (cmpPixel(snake->pos[0], snake->pos[i])) { // check if the head is in the body
+            return true;                              // snake crashed into itself
+        }
+    }
+    return false;
+}
+
+// checks if the given coordinate is on snake's body
+bool isOnSnake(pixel *pos, snake *snake)
+{
+    if (!pos || !snake) {
+        return false;
+    }
+    for (int i = 0; i < snake->len; i++) {
+        if (cmpPixel(snake->pos[i], *pos)) {
             return true;
         }
     }
     return false;
 }
 
-bool isOnSnake(pixel *pos, snake *snk) //checks if the given coordinate is on snake's body
+bool generateFood(snake *snake, food *food, volatile uint32_t *time)
 {
-    if (!pos || !snk) {
-        return false;
-    }
-    for (int i = 0; i < snk->len; i++) {
-        if (cmpPixel(snk->pos[i],*pos)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-bool generateFood(snake *snk, food *food, volatile uint32_t *time)
-{
-    if (!snk || !food || !time) {
+    if (!snake || !food || !time) {
         return false;
     }
     uint32_t startTime = *time;
     do {
         do {
             srand(*time);
-        } while ((food->pos[0].x = rand() % 15) % 2 != 0); //generate x of first coordinate
+        } while ((food->pos[0].x = rand() % 15) % 2 != 0); // generate x of first coordinate
         do {
             srand(*time);
-        } while ((food->pos[0].y = rand() % 5) % 2 != 0); //generate y of first coordinate
-    } while (isOnSnake(&food->pos[0], snk) && (*time - startTime) < 1000); //try while first coordinate is not on snake and if stuck->exit
+        } while ((food->pos[0].y = rand() % 5) % 2 != 0); // generate y of first coordinate
+    // try while first coordinate is not on snake and if stuck->exit
+    } while (isOnSnake(&food->pos[0], snake) && (*time - startTime) < 1000);
 
     do {
         srand(*time);
         if (rand() % 2) { // random direction of food if odd -> horizontal if even -> vertical
-            food->pos[1].x = food->pos[0].x + 2 < WIDTH ? food->pos[0].x + 2 : food->pos[0].x - 2; //generate second coordinate of food
+            // generate second coordinate of food
+            food->pos[1].x = food->pos[0].x + 2 < WIDTH ? food->pos[0].x + 2 : food->pos[0].x - 2;
             food->pos[1].y = food->pos[0].y;
         } else {
-            food->pos[1].y = food->pos[0].y + 2 < HEIGHT ? food->pos[0].y + 2 : food->pos[0].y - 2; //generate second coordinate of food
+            // generate second coordinate of food
+            food->pos[1].y = food->pos[0].y + 2 < HEIGHT ? food->pos[0].y + 2 : food->pos[0].y - 2;
             food->pos[1].x = food->pos[0].x;
         }
-    } while (isOnSnake(&food->pos[1], snk) && (*time - startTime) < 2000); //try while second coordinate is not on snake and if stuck->exit
+    // try while second coordinate is not on snake and if stuck->exit
+    } while (isOnSnake(&food->pos[1], snake) && (*time - startTime) < 2000);
     if ((*time - startTime) < 2000) {
         food->eaten = false;
         return true;
     }
-    return false;//stuck in loop
+    return false; // stuck in loop
 }
 
-//draws food on map
+// draws food on map
 void drawFood(map *map, food *food)
 {
-    if (!map || !food)
+    if (!map || !food) {
         return;
+    }
     drawLine(map, food->pos[0], food->pos[1], 1);
 }
 
-//checks if snake is currently eating food -> increases length and sets food as eaten
-bool isEating(snake *snk, food *food)
+// checks if snake is currently eating food -> increases length and sets food as eaten
+bool isEating(snake *snake, food *food)
 {
-    if (!snk || !food || snk->len < 2) {
+    if (!snake || !food || snake->len < 2) {
         return false;
     }
-    if ((cmpPixel(snk->pos[0], food->pos[0]) || cmpPixel(snk->pos[1], food->pos[0])) &&
-        (cmpPixel(snk->pos[0], food->pos[1]) || cmpPixel(snk->pos[1], food->pos[1]))) { //checks if snake's head is on food
+    //checks if snake's head is on food
+    if ((cmpPixel(snake->pos[0], food->pos[0]) || cmpPixel(snake->pos[1], food->pos[0])) &&
+        (cmpPixel(snake->pos[0], food->pos[1]) || cmpPixel(snake->pos[1], food->pos[1]))) {
         food->eaten = true;
-        snk->len += 1;
+        snake->len += 1;
         return true;
     }
     return false;

@@ -3,8 +3,8 @@
 #include <stdbool.h>
 #include "display.h"
 
-#define MAX_LENGTH  24
-#define FOOD_LENGTH 2
+#define MAX_LENGTH  24 // ~ screen size
+#define FOOD_LENGTH 2  // vector
 
 typedef enum _direction { up = 0, right = 1, down = 2, left = 3 } direction;
 
@@ -19,16 +19,17 @@ typedef struct _food {
     bool  eaten;
 } food;
 
-void initSnake(snake *);
+void initSnake(snake *snake);
 
-void stepSnake(snake *);
+void stepSnake(snake *snake);
 
-void drawSnake(map *, snake *);
+void drawSnake(map *map, snake *snake);
 
-bool checkCollision(snake *);
+bool checkCollision(snake *snake);
 
-bool generateFood(snake *, food *, volatile uint32_t *time);
+bool generateFood(snake *snake, food *food, volatile uint32_t *time);
 
-void drawFood(map *, food *);
+void drawFood(map *map, food *food);
 
-bool isEating(snake *, food *);
+bool isEating(snake *snake, food *food);
+

@@ -11,16 +11,16 @@
 
 #define TICK 500
 
-volatile uint32_t msTicks; /* counts 1ms timeTicks */
-volatile bool     reset     = false;
-volatile bool     game_over = false;
+volatile uint32_t msTicks; // counts 1ms timeTicks
+volatile bool     reset    = false;
+volatile bool     gameOver = false;
 snake             snk;
-food              _food;
-map               _map;
+food              fd;
+map               mp;
 
 void SysTick_Handler(void)
 {
-    msTicks++; /* increment counter necessary in Delay()*/
+    msTicks++; // increment counter necessary in Delay()
 }
 
 void Delay(uint32_t dlyTicks)
@@ -57,8 +57,8 @@ void UART0_RX_IRQHandler(void)
             snk.dir = snk.dir == up ? left : snk.dir - 1;
             break;
         case 'r':
-            reset     = true;
-            game_over = false;
+            reset    = true;
+            gameOver = false;
             break;
     }
 }
@@ -77,33 +77,31 @@ __STATIC_INLINE void UART_Init()
     UART0->ROUTE |= USART_ROUTE_LOCATION_LOC1;
     UART0->ROUTE |= USART_ROUTE_RXPEN | USART_ROUTE_TXPEN;
 
-    USART_IntEnable(UART0, UART_IF_RXDATAV);
+    USART_IntEnable(UART0, UART_IF_RXDATAV); // enable UART interrupt
     NVIC_EnableIRQ(UART0_RX_IRQn);
 }
 
 int main()
 {
     UART_Init();
-    /* Setup SysTick Timer for 1 msec interrupts  */
+    // Setup SysTick Timer for 1 msec interrupts
     if (SysTick_Config(CMU_ClockFreqGet(cmuClock_CORE) / 1000)) {
         while (1);
     }
-    /* Enable LCD without voltage boost */
-    SegmentLCD_Init(false);
+    SegmentLCD_Init(false); // Enable LCD without voltage boost
 
     initSnake(&snk);
-    clearMap(&_map);
-    _food.eaten = true;
+    clearMap(&mp);
+    fd.eaten = true;
 
     bool lengthChanged = true;
-
     while (1) {
         if (reset) {
-            reset     = false;
-            game_over = false;
+            reset    = false;
+            gameOver = false;
             setDecimalPoints(false);
             initSnake(&snk);
-            generateFood(&snk, &_food, &msTicks);
+            generateFood(&snk, &fd, &msTicks);
             lengthChanged = true;
         }
 
@@ -111,28 +109,28 @@ int main()
             SegmentLCD_Number(snk.len - 1);
             lengthChanged = false;
         }
-        if (isEating(&snk, &_food)) {
+        if (isEating(&snk, &fd)) {
             lengthChanged = true;
         }
 
         if (checkCollision(&snk)) {
-            game_over = true;
+            gameOver = true;
         }
-        if (_food.eaten && !generateFood(&snk, &_food, &msTicks)) {
-            game_over = true;
+        if (fd.eaten && !generateFood(&snk, &fd, &msTicks)) {
+            gameOver = true;
         }
 
-        drawSnake(&_map, &snk);
-        drawFood(&_map, &_food);
-        displayMap(&_map);
+        drawSnake(&mp, &snk);
+        drawFood(&mp, &fd);
+        displayMap(&mp);
 
         Delay(TICK);
 
         stepSnake(&snk);
 
-        while (game_over) {
-            clearMap(&_map);
-            displayMap(&_map);
+        while (gameOver) {
+            clearMap(&mp);
+            displayMap(&mp);
             setDecimalPoints(true);
             Delay(TICK);
             setDecimalPoints(false);

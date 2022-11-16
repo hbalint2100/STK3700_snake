@@ -120,6 +120,7 @@ int main()
             gameOver = true;
         }
 
+        clearMap(&mp);
         drawSnake(&mp, &snk);
         drawFood(&mp, &fd);
         displayMap(&mp);
@@ -132,9 +133,9 @@ int main()
             clearMap(&mp);
             displayMap(&mp);
             setDecimalPoints(true);
-            Delay(TICK);
+            Delay(500);
             setDecimalPoints(false);
-            Delay(TICK);
+            Delay(500);
         }
     }
 }

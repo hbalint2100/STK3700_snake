@@ -78,7 +78,7 @@ void drawSnake(map *map, snake *snake)
     if (!map || !snake) {
         return;
     }
-    clearMap(map);
+
     for (int i = 0; i < snake->len - 1; i++) {
         // All the edge cases below occur because in stepSnake() an overflow happened
         // and we would need an extra position to draw a segment. Instead of dynamically
@@ -154,31 +154,43 @@ bool generateFood(snake *snake, food *food, volatile uint32_t *time)
     if (!snake || !food || !time) {
         return false;
     }
+
+    srand(*time);
     uint32_t startTime = *time;
     do {
-        do {
-            srand(*time);
-        } while ((food->pos[0].x = rand() % 15) % 2 != 0); // generate x of first coordinate
-        do {
-            srand(*time);
-        } while ((food->pos[0].y = rand() % 5) % 2 != 0); // generate y of first coordinate
-    // try while first coordinate is not on snake and if stuck->exit
-    } while (isOnSnake(&food->pos[0], snake) && (*time - startTime) < 1000);
+        do { // generate first coordinate of food
+            food->pos[0].x = rand() % 15;
+            if (food->pos[0].x % 2 != 0) {
+                (food->pos[0].x)--;
+            }
+            food->pos[0].y = rand() % 5;
+            if (food->pos[0].y % 2 != 0) {
+                (food->pos[0].y)--;
+            }
+        // try while first coordinate is on snake and if stuck->exit
+        } while (isOnSnake(&food->pos[0], snake) && (*time - startTime) < 200);
 
-    do {
-        srand(*time);
-        if (rand() % 2) { // random direction of food if odd -> horizontal if even -> vertical
-            // generate second coordinate of food
-            food->pos[1].x = food->pos[0].x + 2 < WIDTH ? food->pos[0].x + 2 : food->pos[0].x - 2;
-            food->pos[1].y = food->pos[0].y;
-        } else {
-            // generate second coordinate of food
-            food->pos[1].y = food->pos[0].y + 2 < HEIGHT ? food->pos[0].y + 2 : food->pos[0].y - 2;
-            food->pos[1].x = food->pos[0].x;
+        uint8_t dice = rand();
+        for (uint8_t i = 0; i < 2; i++) {
+            if (dice % 2) { // random direction of food if odd -> horizontal if even -> vertical
+                // generate second coordinate of food
+                food->pos[1].x = food->pos[0].x + 2 < WIDTH ? food->pos[0].x + 2 : food->pos[0].x - 2;
+                food->pos[1].y = food->pos[0].y;
+            } else {
+                // generate second coordinate of food
+                food->pos[1].y = food->pos[0].y + 2 < HEIGHT ? food->pos[0].y + 2 : food->pos[0].y - 2;
+                food->pos[1].x = food->pos[0].x;
+            }
+            if (isOnSnake(&food->pos[1], snake)) {
+                dice++; // if first direction is on snake try the other one
+            } else {
+                break;
+            }
         }
-    // try while second coordinate is not on snake and if stuck->exit
-    } while (isOnSnake(&food->pos[1], snake) && (*time - startTime) < 2000);
-    if ((*time - startTime) < 2000) {
+    // try while coordinates are on snake and if stuck->exit
+    } while (isOnSnake(&food->pos[1], snake) && (*time - startTime) < 200);
+
+    if ((*time - startTime) < 200) {
         food->eaten = false;
         return true;
     }

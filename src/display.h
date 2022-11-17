@@ -26,5 +26,7 @@ void clearMap(map *map);
 
 void setDecimalPoints(bool value);
 
+void toggleDecimalPoints();
+
 bool cmpPixel(pixel a, pixel b);
 

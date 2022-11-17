@@ -132,9 +132,7 @@ int main()
         while (gameOver) {
             clearMap(&mp);
             displayMap(&mp);
-            setDecimalPoints(true);
-            Delay(500);
-            setDecimalPoints(false);
+            toggleDecimalPoints();
             Delay(500);
         }
     }

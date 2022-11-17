@@ -45,8 +45,8 @@ void drawLine(map *map, pixel startPosition, pixel endPosition, uint8_t value)
     bool horizontal = endPosition.y == startPosition.y;
 
     // check if it can be represented as a segment
-    if ((abs(endPosition.x - startPosition.x) > 0 || abs(endPosition.y - startPosition.y) > 0) &&
-        (vertical || horizontal)) {
+    if ((vertical || horizontal) &&
+        (abs(endPosition.x - startPosition.x) > 0 || abs(endPosition.y - startPosition.y) > 0)) {
         if (vertical) {
             int8_t dir = endPosition.y - startPosition.y > 0 ? 1 : -1;
 
@@ -153,6 +153,12 @@ void setDecimalPoints(bool value)
     LCD_SegmentSet(7, 29, value); // 4. decimal point
     LCD_SegmentSet(7, 31, value); // 5. decimal point
     LCD_FreezeEnable(false);
+}
+
+void toggleDecimalPoints()
+{
+    static bool a = 0;
+    setDecimalPoints(a = !a);
 }
 
 bool cmpPixel(pixel a, pixel b) // checks whether a & b pixels are the same

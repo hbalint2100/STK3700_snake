@@ -11,10 +11,11 @@ void initSnake(snake *snake)
         return;
     }
     memset(snake->pos, -1, sizeof(snake->pos));
-    snake->len    = 1 + 1; // head has length 2 because it's a vector
-    snake->dir    = right;
-    snake->pos[0] = (pixel){2, 2};
-    snake->pos[1] = (pixel){0, 2};
+    snake->len        = 1 + 1; // head has length 2 because it's a vector
+    snake->lenChanged = true;
+    snake->dir        = right;
+    snake->pos[0]     = (pixel){2, 2};
+    snake->pos[1]     = (pixel){0, 2};
 }
 
 // move
@@ -79,7 +80,7 @@ void drawSnake(map *map, snake *snake)
         return;
     }
 
-    for (uint8_t i = 0; i < snake->len - 1; i++) {
+    for (uint8_t i = 0; i < snake->len - 1 - (snake->lenChanged == true); i++) {
         // All the edge cases below occur because in stepSnake() an overflow happened
         // and we would need an extra position to draw a segment. Instead of dynamically
         // increasing and decreasing the number of positions we deal with them here.
@@ -127,7 +128,7 @@ bool checkCollision(snake *snake)
     if (!snake) {
         return false;
     }
-    for (uint8_t i = 1; i < snake->len; i++) {
+    for (uint8_t i = 1; i < snake->len - 1; i++) {
         if (cmpPixel(snake->pos[0], snake->pos[i])) { // check if the head is in the body
             return true;                              // snake crashed into itself
         }
@@ -156,7 +157,8 @@ bool generateFood(snake *snake, food *food, volatile uint32_t *time)
     }
 
     srand(*time);
-    uint32_t startTime = *time;
+    const uint8_t timeLimit = 200;
+    uint32_t      startTime = *time;
     do {
         do { // generate first coordinate of food
             food->pos[0].x = rand() % (WIDTH + 1); // +1 for equal chances
@@ -168,7 +170,7 @@ bool generateFood(snake *snake, food *food, volatile uint32_t *time)
                 (food->pos[0].y)--;
             }
         // try while first coordinate is on snake and if stuck->exit
-        } while (isOnSnake(&food->pos[0], snake) && (*time - startTime) < 200);
+        } while (isOnSnake(&food->pos[0], snake) && (*time - startTime) < timeLimit);
 
         uint8_t dice = rand();
         for (uint8_t i = 0; i < 2; i++) {
@@ -188,10 +190,9 @@ bool generateFood(snake *snake, food *food, volatile uint32_t *time)
             }
         }
     // try while coordinates are on snake and if stuck->exit
-    } while (isOnSnake(&food->pos[1], snake) && (*time - startTime) < 200);
+    } while (isOnSnake(&food->pos[1], snake) && (*time - startTime) < timeLimit);
 
-    if ((*time - startTime) < 200) {
-        food->eaten = false;
+    if ((*time - startTime) < timeLimit) {
         return true;
     }
     return false; // stuck in loop
@@ -215,8 +216,8 @@ bool isEating(snake *snake, food *food)
     //checks if snake's head is on food
     if ((cmpPixel(snake->pos[0], food->pos[0]) || cmpPixel(snake->pos[1], food->pos[0])) &&
         (cmpPixel(snake->pos[0], food->pos[1]) || cmpPixel(snake->pos[1], food->pos[1]))) {
-        food->eaten = true;
         snake->len += 1;
+        snake->lenChanged = true;
         return true;
     }
     return false;

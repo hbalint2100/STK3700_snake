@@ -12,11 +12,11 @@ typedef struct _snake {
     uint8_t            len;
     pixel              pos[MAX_LENGTH];
     volatile direction dir;
+    bool               lenChanged;
 } snake;
 
 typedef struct _food {
     pixel pos[FOOD_LENGTH];
-    bool  eaten;
 } food;
 
 void initSnake(snake *snake);

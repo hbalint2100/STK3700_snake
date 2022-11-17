@@ -12,9 +12,8 @@
 #define TICK 500
 
 volatile uint32_t msTicks; // counts 1ms timeTicks
-volatile bool     reset         = true;
-volatile bool     gameOver      = false;
-bool              lengthChanged = true;
+volatile bool     reset    = true;
+volatile bool     gameOver = false;
 snake             snk;
 food              fd;
 map               mp;
@@ -86,8 +85,7 @@ __STATIC_INLINE void initGame()
     gameOver = false;
     setDecimalPoints(false);
     initSnake(&snk);
-    lengthChanged = true;
-    fd.eaten      = true;
+    generateFood(&snk, &fd, &msTicks);
 }
 
 int main()
@@ -104,18 +102,15 @@ int main()
             initGame();
         }
 
-        if (lengthChanged) {
+        if (snk.lenChanged) {
             SegmentLCD_Number(snk.len - 1);
-            lengthChanged = false;
-        }
-        if (isEating(&snk, &fd)) {
-            lengthChanged = true;
+            snk.lenChanged = false;
         }
 
-        if (checkCollision(&snk)) {
+        if (isEating(&snk, &fd) && !generateFood(&snk, &fd, &msTicks)) {
             gameOver = true;
         }
-        if (fd.eaten && !generateFood(&snk, &fd, &msTicks)) {
+        if (checkCollision(&snk)) {
             gameOver = true;
         }
 
@@ -124,16 +119,17 @@ int main()
         drawFood(&mp, &fd);
         displayMap(&mp);
 
-        Delay(TICK);
-
-        stepSnake(&snk);
-
-        while (gameOver) {
+        if (gameOver) {
             clearMap(&mp);
             displayMap(&mp);
-            toggleDecimalPoints();
-            Delay(500);
+            while (gameOver) {
+                toggleDecimalPoints();
+                Delay(500);
+            }
         }
+
+        Delay(TICK);
+        stepSnake(&snk);
     }
 }
 

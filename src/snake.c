@@ -159,11 +159,11 @@ bool generateFood(snake *snake, food *food, volatile uint32_t *time)
     uint32_t startTime = *time;
     do {
         do { // generate first coordinate of food
-            food->pos[0].x = rand() % 15;
+            food->pos[0].x = rand() % (WIDTH + 1); // +1 for equal chances
             if (food->pos[0].x % 2 != 0) {
                 (food->pos[0].x)--;
             }
-            food->pos[0].y = rand() % 5;
+            food->pos[0].y = rand() % (HEIGHT + 1); // +1 for equal chances
             if (food->pos[0].y % 2 != 0) {
                 (food->pos[0].y)--;
             }

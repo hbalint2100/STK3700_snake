@@ -119,6 +119,7 @@ int main()
         drawFood(&mp, &fd);
         displayMap(&mp);
 
+        Delay(TICK);
         if (gameOver) {
             clearMap(&mp);
             displayMap(&mp);
@@ -128,7 +129,6 @@ int main()
             }
         }
 
-        Delay(TICK);
         stepSnake(&snk);
     }
 }

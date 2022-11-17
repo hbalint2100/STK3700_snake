@@ -49,10 +49,10 @@ void UART0_RX_IRQHandler(void)
             snk.newDir = down;
             break;
         case 'j':
-            snk.newDir = snk.newDir == left ? up : snk.newDir + 1;
+            snk.newDir = snk.dir == left ? up : snk.dir + 1;
             break;
         case 'b':
-            snk.newDir = snk.newDir == up ? left : snk.newDir - 1;
+            snk.newDir = snk.dir == up ? left : snk.dir - 1;
             break;
         case 'r':
             reset    = true;
@@ -128,8 +128,7 @@ int main()
                 Delay(500);
             }
         }
-
-        setDir(&snk);
+        
         stepSnake(&snk);
     }
 }

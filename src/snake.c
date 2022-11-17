@@ -10,7 +10,7 @@ void initSnake(snake *snake)
     if (!snake) {
         return;
     }
-    memset(snake->pos, 0, sizeof(snake->pos));
+    memset(snake->pos, -1, sizeof(snake->pos));
     snake->len    = 1 + 1; // head has length 2 because it's a vector
     snake->dir    = right;
     snake->pos[0] = (pixel){2, 2};
@@ -111,7 +111,7 @@ void drawSnake(map *map, snake *snake)
         }
         // snake goes vertically and constantly overflows
         // (only makes sense when length is 2 + 1, otherwise it dies)
-        else if (snake->len > 2 && cmpPixel(snake->pos[i], snake->pos[i + 2])) {
+        else if (!(snake->dir % 2) && snake->len > 2 && cmpPixel(snake->pos[i], snake->pos[i + 2])) {
             drawLine(map, (pixel){snake->pos[i + 2].x, snake->pos[i + 2].y - 2},
                      (pixel){snake->pos[i + 2].x, snake->pos[i + 2].y + 2}, 1);
         }
@@ -127,7 +127,7 @@ bool checkCollision(snake *snake)
     if (!snake) {
         return false;
     }
-    for (uint8_t i = 1; i < snake->len - 1; i++) {
+    for (uint8_t i = 1; i < snake->len; i++) {
         if (cmpPixel(snake->pos[0], snake->pos[i])) { // check if the head is in the body
             return true;                              // snake crashed into itself
         }

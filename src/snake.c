@@ -14,8 +14,17 @@ void initSnake(snake *snake)
     snake->len        = 1 + 1; // head has length 2 because it's a vector
     snake->lenChanged = true;
     snake->dir        = right;
+    snake->newDir     = right;
     snake->pos[0]     = (pixel){2, 2};
     snake->pos[1]     = (pixel){0, 2};
+}
+
+void setDir(snake *snake)
+{
+    if (snake->newDir % 2 == snake->dir % 2) { // 180 degree turn
+        return;
+    }
+    snake->dir = snake->newDir;
 }
 
 // move

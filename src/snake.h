@@ -11,7 +11,8 @@ typedef enum _direction { up = 0, right = 1, down = 2, left = 3 } direction;
 typedef struct _snake {
     uint8_t            len;
     pixel              pos[MAX_LENGTH];
-    volatile direction dir;
+    direction          dir;
+    volatile direction newDir;
     bool               lenChanged;
 } snake;
 
@@ -20,6 +21,8 @@ typedef struct _food {
 } food;
 
 void initSnake(snake *snake);
+
+void setDir(snake *snake);
 
 void stepSnake(snake *snake);
 

@@ -34,25 +34,25 @@ void UART0_RX_IRQHandler(void)
     switch (USART_RxDataGet(UART0)) {
         case 'd':
         case 67: // right arrow
-            snk.dir = right;
+            snk.newDir = right;
             break;
         case 'a':
         case 68: // left arrow
-            snk.dir = left;
+            snk.newDir = left;
             break;
         case 'w':
         case 65: // up arrow
-            snk.dir = up;
+            snk.newDir = up;
             break;
         case 's':
         case 66: // down arrow
-            snk.dir = down;
+            snk.newDir = down;
             break;
         case 'j':
-            snk.dir = snk.dir == left ? up : snk.dir + 1;
+            snk.newDir = snk.newDir == left ? up : snk.newDir + 1;
             break;
         case 'b':
-            snk.dir = snk.dir == up ? left : snk.dir - 1;
+            snk.newDir = snk.newDir == up ? left : snk.newDir - 1;
             break;
         case 'r':
             reset    = true;
@@ -129,6 +129,7 @@ int main()
             }
         }
 
+        setDir(&snk);
         stepSnake(&snk);
     }
 }

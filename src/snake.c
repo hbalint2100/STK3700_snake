@@ -24,7 +24,7 @@ void stepSnake(snake *snake)
         return;
     }
     // shift snake except its head
-    for (int i = snake->len - 1; i > 0; i--) {
+    for (int8_t i = snake->len - 1; i > 0; i--) {
         snake->pos[i] = snake->pos[i - 1];
     }
 
@@ -79,7 +79,7 @@ void drawSnake(map *map, snake *snake)
         return;
     }
 
-    for (int i = 0; i < snake->len - 1; i++) {
+    for (uint8_t i = 0; i < snake->len - 1; i++) {
         // All the edge cases below occur because in stepSnake() an overflow happened
         // and we would need an extra position to draw a segment. Instead of dynamically
         // increasing and decreasing the number of positions we deal with them here.
@@ -127,7 +127,7 @@ bool checkCollision(snake *snake)
     if (!snake) {
         return false;
     }
-    for (int i = 1; i < snake->len - 1; i++) {
+    for (uint8_t i = 1; i < snake->len - 1; i++) {
         if (cmpPixel(snake->pos[0], snake->pos[i])) { // check if the head is in the body
             return true;                              // snake crashed into itself
         }
@@ -141,7 +141,7 @@ bool isOnSnake(pixel *pos, snake *snake)
     if (!pos || !snake) {
         return false;
     }
-    for (int i = 0; i < snake->len; i++) {
+    for (uint8_t i = 0; i < snake->len; i++) {
         if (cmpPixel(snake->pos[i], *pos)) {
             return true;
         }

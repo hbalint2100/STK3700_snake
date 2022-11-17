@@ -12,8 +12,9 @@
 #define TICK 500
 
 volatile uint32_t msTicks; // counts 1ms timeTicks
-volatile bool     reset    = false;
-volatile bool     gameOver = false;
+volatile bool     reset         = true;
+volatile bool     gameOver      = false;
+bool              lengthChanged = true;
 snake             snk;
 food              fd;
 map               mp;
@@ -25,9 +26,7 @@ void SysTick_Handler(void)
 
 void Delay(uint32_t dlyTicks)
 {
-    uint32_t curTicks;
-
-    curTicks = msTicks;
+    uint32_t curTicks = msTicks;
     while ((msTicks - curTicks) < dlyTicks);
 }
 
@@ -81,6 +80,16 @@ __STATIC_INLINE void UART_Init()
     NVIC_EnableIRQ(UART0_RX_IRQn);
 }
 
+__STATIC_INLINE void initGame()
+{
+    reset    = false;
+    gameOver = false;
+    setDecimalPoints(false);
+    initSnake(&snk);
+    lengthChanged = true;
+    fd.eaten      = true;
+}
+
 int main()
 {
     UART_Init();
@@ -90,19 +99,9 @@ int main()
     }
     SegmentLCD_Init(false); // Enable LCD without voltage boost
 
-    initSnake(&snk);
-    clearMap(&mp);
-    fd.eaten = true;
-
-    bool lengthChanged = true;
     while (1) {
         if (reset) {
-            reset    = false;
-            gameOver = false;
-            setDecimalPoints(false);
-            initSnake(&snk);
-            generateFood(&snk, &fd, &msTicks);
-            lengthChanged = true;
+            initGame();
         }
 
         if (lengthChanged) {

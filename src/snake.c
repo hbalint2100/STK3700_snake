@@ -80,7 +80,8 @@ void drawSnake(map *map, snake *snake)
         return;
     }
 
-    for (uint8_t i = 0; i < snake->len - 1 - (snake->lenChanged == true); i++) {
+    uint8_t border = snake->len - 1 - (snake->lenChanged == true);
+    for (uint8_t i = 0; i < border; i++) {
         // All the edge cases below occur because in stepSnake() an overflow happened
         // and we would need an extra position to draw a segment. Instead of dynamically
         // increasing and decreasing the number of positions we deal with them here.
@@ -112,9 +113,10 @@ void drawSnake(map *map, snake *snake)
         }
         // snake goes vertically and constantly overflows
         // (only makes sense when length is 2 + 1, otherwise it dies)
-        else if (!(snake->dir % 2) && snake->len > 2 && cmpPixel(snake->pos[i], snake->pos[i + 2])) {
-            drawLine(map, (pixel){snake->pos[i + 2].x, snake->pos[i + 2].y - 2},
-                     (pixel){snake->pos[i + 2].x, snake->pos[i + 2].y + 2}, 1);
+        else if (i < border - 1 && !(snake->dir % 2) && snake->len > 2 &&
+                 cmpPixel(snake->pos[i], snake->pos[i + 2])) {
+            drawLine(map, (pixel){snake->pos[i].x, snake->pos[i].y - 2},
+                     (pixel){snake->pos[i].x, snake->pos[i].y + 2}, 1);
         }
         // no overflow
         else {

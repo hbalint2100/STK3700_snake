@@ -128,7 +128,8 @@ int main()
                 Delay(500);
             }
         }
-        
+
+        setDir(&snk);
         stepSnake(&snk);
     }
 }

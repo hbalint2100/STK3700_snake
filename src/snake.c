@@ -19,13 +19,20 @@ void initSnake(snake *snake)
     snake->pos[1]     = (pixel){0, 2};
 }
 
+void setDir(snake *snake)
+{
+    if (snake->newDir % 2 == snake->dir % 2) { // 180 degree turn
+        return;
+    }
+    snake->dir = snake->newDir;
+}
+
 // move
 void stepSnake(snake *snake)
 {
     if (!snake) {
         return;
     }
-    snake->dir = snake->newDir;
     // shift snake except its head
     for (int8_t i = snake->len - 1; i > 0; i--) {
         snake->pos[i] = snake->pos[i - 1];
